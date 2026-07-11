@@ -1,0 +1,105 @@
+{
+  "results": [
+    {
+      "question": "Quelle est la tendance de vente Fibre sur les trois derniers mois ?",
+      "expected_sources": [
+        "monthly_fibre_report_q1.pdf"
+      ],
+      "cases": {
+        "old_65_35": {
+          "top_sources": [],
+          "top_scores": [],
+          "hit_count_top5": 0,
+          "best_expected_rank": null
+        },
+        "new_60_40": {
+          "top_sources": [],
+          "top_scores": [],
+          "hit_count_top5": 0,
+          "best_expected_rank": null
+        }
+      }
+    },
+    {
+      "question": "What promotions affected 5G sales in North region?",
+      "expected_sources": [
+        "promo_campaigns_5g.xlsx"
+      ],
+      "cases": {
+        "old_65_35": {
+          "top_sources": [],
+          "top_scores": [],
+          "hit_count_top5": 0,
+          "best_expected_rank": null
+        },
+        "new_60_40": {
+          "top_sources": [],
+          "top_scores": [],
+          "hit_count_top5": 0,
+          "best_expected_rank": null
+        }
+      }
+    },
+    {
+      "question": "Quels sont les impacts d'une remise de 20% sur les offres Data Bundle ?",
+      "expected_sources": [
+        "pricing_simulation_notes.md"
+      ],
+      "cases": {
+        "old_65_35": {
+          "top_sources": [],
+          "top_scores": [],
+          "hit_count_top5": 0,
+          "best_expected_rank": null
+        },
+        "new_60_40": {
+          "top_sources": [],
+          "top_scores": [],
+          "hit_count_top5": 0,
+          "best_expected_rank": null
+        }
+      }
+    },
+    {
+      "question": "What does the stock anomaly dashboard say about VOD in March?",
+      "expected_sources": [
+        "vod_stock_anomaly_march.csv"
+      ],
+      "cases": {
+        "old_65_35": {
+          "top_sources": [],
+          "top_scores": [],
+          "hit_count_top5": 0,
+          "best_expected_rank": null
+        },
+        "new_60_40": {
+          "top_sources": [],
+          "top_scores": [],
+          "hit_count_top5": 0,
+          "best_expected_rank": null
+        }
+      }
+    },
+    {
+      "question": "Quels facteurs expliquent la baisse de performance de certains dealers ?",
+      "expected_sources": [
+        "dealer_performance_review.docx"
+      ],
+      "cases": {
+        "old_65_35": {
+          "top_sources": [],
+          "top_scores": [],
+          "hit_count_top5": 0,
+          "best_expected_rank": null
+        },
+        "new_60_40": {
+          "top_sources": [],
+          "top_scores": [],
+          "hit_count_top5": 0,
+          "best_expected_rank": null
+        }
+      }
+    }
+  ],
+  "error": null
+}

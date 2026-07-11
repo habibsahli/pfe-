@@ -1,0 +1,48 @@
+# Python
+__pycache__/
+*.pyc
+.venv/
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Node
+node_modules/
+dist/
+playwright-report/
+.next/
+frontend/.next/
+
+# Env
+.env
+
+# Data and logs
+*.log
+mlruns/
+
+# ML training artifacts (PyTorch Lightning / checkpoints)
+lightning_logs/
+backend/lightning_logs/
+*.ckpt
+
+# Scratch / temp working dirs
+.tmp_ui_inspect/
+.data/
+
+# Local data files (real Ooredoo CSVs — kept out of git)
+data/*.csv
+
+# Data directory — keep folder structure (.gitkeep), ignore all content
+data/landing/*
+data/archive/*
+data/knowledge/*
+!data/landing/.gitkeep
+!data/archive/.gitkeep
+!data/knowledge/.gitkeep
+
+# Docker env with credentials — use .env.docker.example instead
+.env.docker
+
+# IDE
+.vscode/
+.DS_Store

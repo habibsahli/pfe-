@@ -1,0 +1,17 @@
+{
+  "control": {
+    "confidence": 0.25,
+    "answer_len": 1283,
+    "sources": 0,
+    "answer_preview": "**Analyse des donn\u00e9es**\n\n1. Les donn\u00e9es historiques montrent une tendance \u00e0 la hausse r\u00e9guli\u00e8re, avec une augmentation de 5 points par mois en moyenne"
+  },
+  "A": {
+    "error": "HTTPConnectionPool(host='localhost', port=8000): Read timed out. (read timeout=60)"
+  },
+  "B": {
+    "error": "HTTPConnectionPool(host='localhost', port=8000): Read timed out. (read timeout=60)"
+  },
+  "C": {
+    "error": "HTTPConnectionPool(host='localhost', port=8000): Read timed out. (read timeout=60)"
+  }
+}

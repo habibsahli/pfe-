@@ -1,0 +1,98 @@
+[
+  {
+    "variant": "control",
+    "forecast_type": "stable",
+    "status": "success",
+    "http_status": 200,
+    "confidence": "0.35",
+    "answer_length": 294,
+    "sources_count": 0,
+    "forecast_stable": "true",
+    "elapsed_ms": 183,
+    "timestamp": "2026-05-22T10:06:57Z"
+  },
+  {
+    "variant": "control",
+    "forecast_type": "dynamic",
+    "status": "error_000",
+    "http_status": 0,
+    "confidence": "N/A",
+    "answer_length": 0,
+    "sources_count": 0,
+    "forecast_stable": "error",
+    "elapsed_ms": 120041,
+    "timestamp": "2026-05-22T10:08:58Z"
+  },
+  {
+    "variant": "A",
+    "forecast_type": "stable",
+    "status": "success",
+    "http_status": 200,
+    "confidence": "0.35",
+    "answer_length": 294,
+    "sources_count": 0,
+    "forecast_stable": "true",
+    "elapsed_ms": 61395,
+    "timestamp": "2026-05-22T10:10:00Z"
+  },
+  {
+    "variant": "A",
+    "forecast_type": "dynamic",
+    "status": "error_000",
+    "http_status": 0,
+    "confidence": "N/A",
+    "answer_length": 0,
+    "sources_count": 0,
+    "forecast_stable": "error",
+    "elapsed_ms": 120014,
+    "timestamp": "2026-05-22T10:12:01Z"
+  },
+  {
+    "variant": "B",
+    "forecast_type": "stable",
+    "status": "success",
+    "http_status": 200,
+    "confidence": "0.35",
+    "answer_length": 294,
+    "sources_count": 0,
+    "forecast_stable": "true",
+    "elapsed_ms": 61316,
+    "timestamp": "2026-05-22T10:13:03Z"
+  },
+  {
+    "variant": "B",
+    "forecast_type": "dynamic",
+    "status": "success",
+    "http_status": 200,
+    "confidence": "0.25",
+    "answer_length": 1379,
+    "sources_count": 0,
+    "forecast_stable": "unknown",
+    "elapsed_ms": 118853,
+    "timestamp": "2026-05-22T10:15:03Z"
+  },
+  {
+    "variant": "C",
+    "forecast_type": "stable",
+    "status": "success",
+    "http_status": 200,
+    "confidence": "0.35",
+    "answer_length": 294,
+    "sources_count": 0,
+    "forecast_stable": "true",
+    "elapsed_ms": 165,
+    "timestamp": "2026-05-22T10:15:05Z"
+  },
+  {
+    "variant": "C",
+    "forecast_type": "dynamic",
+    "status": "success",
+    "http_status": 200,
+    "confidence": "0.25",
+    "answer_length": 624,
+    "sources_count": 0,
+    "forecast_stable": "unknown",
+    "elapsed_ms": 36801,
+    "timestamp": "2026-05-22T10:15:42Z"
+  }
+]

@@ -1,0 +1,270 @@
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: fibre_postgres
+    environment:
+      POSTGRES_DB: fibre_forecast_db
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: SecurePassword123!
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./docker/init-scripts:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U admin"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - forecast-network
+
+  etcd:
+    image: quay.io/coreos/etcd:v3.5.5
+    container_name: milvus_etcd
+    command:
+      - /usr/local/bin/etcd
+      - --data-dir=/etcd
+      - --name=etcd
+      - --listen-client-urls=http://0.0.0.0:2379
+      - --advertise-client-urls=http://etcd:2379
+      - --listen-peer-urls=http://0.0.0.0:2380
+      - --initial-advertise-peer-urls=http://etcd:2380
+      - --initial-cluster=etcd=http://etcd:2380
+      - --initial-cluster-state=new
+    environment:
+      ETCD_AUTO_COMPACTION_MODE: revision
+      ETCD_AUTO_COMPACTION_RETENTION: '1000'
+      ETCD_QUOTA_BACKEND_BYTES: '4294967296'
+    volumes:
+      - etcd-data:/etcd
+    networks:
+      - forecast-network
+    healthcheck:
+      test: ["CMD-SHELL", "ETCDCTL_API=3 etcdctl --endpoints=http://127.0.0.1:2379 endpoint health"]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+
+  minio:
+    image: minio/minio:RELEASE.2023-03-20T20-16-18Z
+    container_name: milvus_minio
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    volumes:
+      - minio-data:/minio_data
+    command: minio server /minio_data --console-address ":9001"
+    ports:
+      - "9002:9000"
+      - "9003:9001"
+    networks:
+      - forecast-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+
+  milvus:
+    image: milvusdb/milvus:v2.3.3
+    container_name: fibre_milvus
+    command: ["milvus", "run", "standalone"]
+    environment:
+      ETCD_ENDPOINTS: etcd:2379
+      MINIO_ADDRESS: minio:9000
+    volumes:
+      - milvus-data:/var/lib/milvus
+    ports:
+      - "19530:19530"
+      - "9091:9091"
+    depends_on:
+      - etcd
+      - minio
+    networks:
+      - forecast-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9091/healthz"]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+
+  attu:
+    image: zilliz/attu:latest
+    container_name: fibre_attu
+    environment:
+      MILVUS_URL: milvus:19530
+    ports:
+      - "8001:3000"
+    depends_on:
+      - milvus
+    networks:
+      - forecast-network
+
+  ollama:
+    image: ollama/ollama:latest
+    container_name: fibre_ollama
+    ports:
+      - "11435:11434"
+    volumes:
+      - ollama-models:/root/.ollama
+    environment:
+      - OLLAMA_NUM_GPU=0
+    shm_size: '8gb'
+    networks:
+      - forecast-network
+    healthcheck:
+      test: ["CMD-SHELL", "bash -c 'exec 3<>/dev/tcp/localhost/11434 && echo healthy >&3' 2>/dev/null || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+
+  mlflow:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.mlflow
+    image: pfe-mlflow:latest
+    container_name: fibre_mlflow
+    command: >
+      mlflow server
+      --backend-store-uri postgresql://admin:SecurePassword123!@postgres:5432/fibre_forecast_db
+      --default-artifact-root /mlruns
+      --host 0.0.0.0
+      --port 5000
+    ports:
+      - "5001:5000"
+    volumes:
+      - mlflow-artifacts:/mlruns
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - forecast-network
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:5000').read(); exit(0)"]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+
+  phoenix:
+    image: arizephoenix/phoenix:latest
+    container_name: fibre_phoenix
+    ports:
+      - "6006:6006"
+    environment:
+      # Persist Phoenix data in Postgres for durability across restarts
+      - DATABASE_URL=postgresql://admin:SecurePassword123!@postgres:5432/phoenix_db
+    volumes:
+      # Persist Phoenix SQLite DB and state from the container user's home
+      - phoenix-data:/root/.phoenix
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - forecast-network
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:6006/health').read()"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    image: pfe-backend:latest
+    container_name: fibre_backend
+    restart: on-failure
+    environment:
+      DATABASE_URL: postgresql://admin:SecurePassword123!@postgres:5432/fibre_forecast_db
+      MILVUS_HOST: milvus
+      MILVUS_PORT: 19530
+      MILVUS_COLLECTION_NAME: fibre_forecast_rag
+      OLLAMA_HOST: http://ollama:11434
+      OLLAMA_EMBEDDING_MODEL: bge-m3
+      OLLAMA_LLM_MODEL: llama3.2:3b
+      OLLAMA_TIMEOUT: 300
+      # Set to a running Moirai container URL to enable generative forecasting;
+      # leave empty to disable the moirai model without errors.
+      MOIRAI_API_URL: ""
+      MOIRAI_API_KEY: local
+      RAG_DENSE_TOP_K: 40
+      RAG_LEXICAL_TOP_K: 40
+      RAG_FUSED_TOP_K: 20
+      RAG_RRF_K: 60
+      RAG_DENSE_WEIGHT: 0.60
+      RAG_LEXICAL_WEIGHT: 0.40
+      RAG_RERANK_OVERLAP_WEIGHT: 0.20
+      MLFLOW_TRACKING_URI: http://mlflow:5000
+      MLFLOW_EXPERIMENT_NAME: Fibre_Forecast
+      PHOENIX_COLLECTOR_ENDPOINT: http://phoenix:6006
+      PHOENIX_ENABLE_TRACING: "true"
+      API_HOST: 0.0.0.0
+      API_PORT: 8000
+      DEBUG: "false"
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./data:/data
+      - ./backend:/app
+      - hf-cache:/root/.cache/huggingface
+    depends_on:
+      postgres:
+        condition: service_healthy
+      ollama:
+        condition: service_healthy
+      milvus:
+        condition: service_healthy
+      mlflow:
+        condition: service_started
+      phoenix:
+        condition: service_started
+    networks:
+      - forecast-network
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: fibre_frontend
+    restart: on-failure
+    environment:
+      # Used by next.config.mjs rewrites (server-side proxy to backend)
+      API_BASE_URL: http://fibre_backend:8000
+      # Exposed to the browser — falls back to window.location.hostname:8000 when unset,
+      # which works for local access. Set this to your host IP/domain for remote access.
+      # NEXT_PUBLIC_API_BASE_URL: http://your-host:8000
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+      - /app/.next
+    depends_on:
+      backend:
+        condition: service_healthy
+    networks:
+      - forecast-network
+
+volumes:
+  postgres-data:
+  etcd-data:
+  minio-data:
+  milvus-data:
+  ollama-models:
+  mlflow-artifacts:
+  phoenix-data:
+  hf-cache:
+
+networks:
+  forecast-network:
+    driver: bridge
